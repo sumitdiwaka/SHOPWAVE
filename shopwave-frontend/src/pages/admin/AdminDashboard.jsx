@@ -12,7 +12,7 @@ import { adminAPI } from '../../api/services';
 import api from '../../api/axios';
 import { OrderStatusBadge, FullPageSpinner, Badge } from '../../components/common';
 import toast from 'react-hot-toast';
-import { FeaturedToggle } from '../../components/common/AdminToggleFeatured';
+import { FeaturedToggle } from '../../components/common/Admintogglefeatured';
 
 const ADMIN_TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
