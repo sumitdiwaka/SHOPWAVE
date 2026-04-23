@@ -19,12 +19,13 @@ const ADMIN_TABS = [
   { id: 'users', label: 'Users', icon: Users },
   { id: 'vendors', label: 'Vendor Approvals', icon: Store },
   { id: 'orders', label: 'All Orders', icon: ShoppingBag },
-  { id: 'returns',  label: 'Returns / Refunds', icon: RefreshCw },
+  { id: 'returns', label: 'Returns / Refunds', icon: RefreshCw },
+  { id: 'products', label: 'Featured Products', icon: Package },
   { id: 'razorpay', label: 'Test Payment Info', icon: IndianRupee },
 ];
 
 const PIE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function AdminDashboard() {
   const { tab = 'dashboard' } = useParams();
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [products, setProducts] = useState([]);
   // User filters
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
@@ -50,11 +51,12 @@ export default function AdminDashboard() {
     if (tab === 'dashboard') fetch = adminAPI.getDashboard().then((r) => setData(r.data.stats));
     else if (tab === 'users') fetch = adminAPI.getUsers().then((r) => setUsers(r.data.users));
     else if (tab === 'vendors') fetch = adminAPI.getPendingVendors().then((r) => setVendors(r.data.vendors));
-    else if (tab === 'orders')  fetch = adminAPI.getAllOrders().then((r) => setOrders(r.data.orders));
+    else if (tab === 'orders') fetch = adminAPI.getAllOrders().then((r) => setOrders(r.data.orders));
+    else if (tab === 'products') fetch = api.get('/products?limit=50').then((r) => setProducts(r.data.products || []));
     else if (tab === 'returns') fetch = api.get('/returns').then((r) => setReturns(r.data.returns || []));
     else fetch = Promise.resolve();
 
-    fetch?.catch(() => {}).finally(() => setLoading(false));
+    fetch?.catch(() => { }).finally(() => setLoading(false));
   }, [tab]);
 
   // ── Filtered Users ──
@@ -181,7 +183,7 @@ export default function AdminDashboard() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-gray-50">
-                              {['Order ID','Customer','Amount','Status','Date'].map((h) => (
+                              {['Order ID', 'Customer', 'Amount', 'Status', 'Date'].map((h) => (
                                 <th key={h} className="text-left py-2 px-2 font-medium text-gray-500 text-xs">{h}</th>
                               ))}
                             </tr>
@@ -243,7 +245,7 @@ export default function AdminDashboard() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-50 bg-gray-50">
-                            {['Name','Email','Role','Joined','Status','Action'].map((h) => (
+                            {['Name', 'Email', 'Role', 'Joined', 'Status', 'Action'].map((h) => (
                               <th key={h} className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{h}</th>
                             ))}
                           </tr>
@@ -352,7 +354,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <Filter className="w-4 h-4 text-gray-400 shrink-0" />
                       <span className="text-xs text-gray-500">Filter by status:</span>
-                      {['all','placed','confirmed','processing','shipped','delivered','cancelled'].map((s) => (
+                      {['all', 'placed', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map((s) => (
                         <button
                           key={s}
                           onClick={() => setOrderStatusFilter(s)}
@@ -373,7 +375,7 @@ export default function AdminDashboard() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-50 bg-gray-50">
-                            {['Order ID','Customer','Items','Total','Payment','Status','Date'].map((h) => (
+                            {['Order ID', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date'].map((h) => (
                               <th key={h} className="text-left py-3 px-4 font-medium text-gray-500 text-xs">{h}</th>
                             ))}
                           </tr>
@@ -408,7 +410,46 @@ export default function AdminDashboard() {
                 <AdminReturnsTab returns={returns} onUpdate={setReturns} />
               )}
 
-                            {/* ════ RAZORPAY TEST INFO TAB ════ */}
+              {/* ════ FEATURED PRODUCTS TAB ════ */}
+              {tab === 'products' && (
+                <div className="space-y-4">
+                  <div className="bg-white border border-gray-100 rounded-2xl p-5">
+                    <h2 className="font-bold text-gray-900 mb-1">Featured Products</h2>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Toggle products to show them in the Featured section on the homepage.
+                    </p>
+                    <div className="space-y-3">
+                      {products.map((product) => (
+                        <div key={product._id}
+                          className="flex items-center gap-4 p-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition">
+                          <img
+                            src={product.images?.[0]?.url || 'https://placehold.co/48x48?text=?'}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-xl shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 line-clamp-1">{product.name}</p>
+                            <p className="text-xs text-gray-500">{product.category} · ₹{product.price?.toLocaleString('en-IN')}</p>
+                            <p className="text-xs text-indigo-500">{product.vendor?.shopName}</p>
+                          </div>
+                          {/* ✅ THIS IS WHERE THE FEATUREDTOGGLE GOES */}
+                          <FeaturedToggle
+                            product={product}
+                            onUpdate={(updated) => setProducts(prev =>
+                              prev.map(p => p._id === updated._id ? updated : p)
+                            )}
+                          />
+                        </div>
+                      ))}
+                      {products.length === 0 && (
+                        <p className="text-center text-gray-400 py-10 text-sm">No products found</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ════ RAZORPAY TEST INFO TAB ════ */}
               {tab === 'razorpay' && (
                 <div className="space-y-4">
                   <div className="bg-white border border-gray-100 rounded-2xl p-6">
@@ -425,7 +466,7 @@ export default function AdminDashboard() {
                         <table className="w-full text-sm border border-gray-100 rounded-xl overflow-hidden">
                           <thead className="bg-gray-50">
                             <tr>
-                              {['Card Type','Card Number','Expiry','CVV','OTP'].map((h) => (
+                              {['Card Type', 'Card Number', 'Expiry', 'CVV', 'OTP'].map((h) => (
                                 <th key={h} className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500">{h}</th>
                               ))}
                             </tr>
@@ -519,34 +560,34 @@ export default function AdminDashboard() {
    ADMIN RETURNS TAB — full return/refund management
 ══════════════════════════════════════════════════════════ */
 function AdminReturnsTab({ returns, onUpdate }) {
-  const [statusFilter,    setStatusFilter]    = useState('all');
-  const [actionLoading,   setActionLoading]   = useState(null);
-  const [rejectId,        setRejectId]        = useState(null);
-  const [rejectReason,    setRejectReason]    = useState('');
-  const [expandedId,      setExpandedId]      = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [actionLoading, setActionLoading] = useState(null);
+  const [rejectId, setRejectId] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
-  const RETURN_STATUSES = ['all','requested','approved','rejected','pickup_scheduled','item_received','refund_initiated','refunded'];
+  const RETURN_STATUSES = ['all', 'requested', 'approved', 'rejected', 'pickup_scheduled', 'item_received', 'refund_initiated', 'refunded'];
 
   const STATUS_COLORS = {
-    requested:        'bg-yellow-100 text-yellow-700',
-    approved:         'bg-blue-100 text-blue-700',
-    rejected:         'bg-red-100 text-red-600',
+    requested: 'bg-yellow-100 text-yellow-700',
+    approved: 'bg-blue-100 text-blue-700',
+    rejected: 'bg-red-100 text-red-600',
     pickup_scheduled: 'bg-purple-100 text-purple-700',
-    item_received:    'bg-indigo-100 text-indigo-700',
+    item_received: 'bg-indigo-100 text-indigo-700',
     refund_initiated: 'bg-cyan-100 text-cyan-700',
-    refunded:         'bg-green-100 text-green-700',
+    refunded: 'bg-green-100 text-green-700',
   };
 
   const REASON_LABELS = {
-    defective_damaged:      'Defective/Damaged',
-    wrong_item_received:    'Wrong Item',
-    not_as_described:       'Not As Described',
-    missing_parts:          'Missing Parts',
-    size_fit_issue:         'Size/Fit Issue',
-    changed_mind:           'Changed Mind',
+    defective_damaged: 'Defective/Damaged',
+    wrong_item_received: 'Wrong Item',
+    not_as_described: 'Not As Described',
+    missing_parts: 'Missing Parts',
+    size_fit_issue: 'Size/Fit Issue',
+    changed_mind: 'Changed Mind',
     better_price_elsewhere: 'Better Price Elsewhere',
-    arrived_late:           'Arrived Late',
-    other:                  'Other',
+    arrived_late: 'Arrived Late',
+    other: 'Other',
   };
 
   const filtered = statusFilter === 'all' ? returns : returns.filter((r) => r.status === statusFilter);
@@ -554,7 +595,7 @@ function AdminReturnsTab({ returns, onUpdate }) {
   const handleUpdateStatus = async (returnId, status) => {
     const labels = {
       pickup_scheduled: 'Mark pickup as scheduled?',
-      item_received:    'Mark item as received at warehouse?',
+      item_received: 'Mark item as received at warehouse?',
       replacement_sent: 'Mark replacement as dispatched to customer?',
     };
     if (!window.confirm(labels[status] || `Update status to "${status}"?`)) return;
@@ -601,7 +642,7 @@ function AdminReturnsTab({ returns, onUpdate }) {
   };
 
   // Summary counts
-  const pendingCount  = returns.filter((r) => r.status === 'requested').length;
+  const pendingCount = returns.filter((r) => r.status === 'requested').length;
   const refundedTotal = returns.filter((r) => r.status === 'refunded').reduce((s, r) => s + (r.refundAmount || 0), 0);
 
   return (
@@ -609,10 +650,10 @@ function AdminReturnsTab({ returns, onUpdate }) {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total Returns',    value: returns.length,          color: 'bg-gray-50 text-gray-900'   },
-          { label: 'Pending Review',   value: pendingCount,            color: 'bg-yellow-50 text-yellow-700', urgent: pendingCount > 0 },
-          { label: 'Total Refunded',   value: `₹${refundedTotal.toLocaleString('en-IN')}`, color: 'bg-green-50 text-green-700' },
-          { label: 'Refunded Orders',  value: returns.filter((r) => r.status === 'refunded').length, color: 'bg-indigo-50 text-indigo-700' },
+          { label: 'Total Returns', value: returns.length, color: 'bg-gray-50 text-gray-900' },
+          { label: 'Pending Review', value: pendingCount, color: 'bg-yellow-50 text-yellow-700', urgent: pendingCount > 0 },
+          { label: 'Total Refunded', value: `₹${refundedTotal.toLocaleString('en-IN')}`, color: 'bg-green-50 text-green-700' },
+          { label: 'Refunded Orders', value: returns.filter((r) => r.status === 'refunded').length, color: 'bg-indigo-50 text-indigo-700' },
         ].map(({ label, value, color, urgent }) => (
           <div key={label} className={`rounded-2xl p-4 border ${urgent ? 'border-yellow-200 animate-pulse' : 'border-gray-100'} ${color}`}>
             <p className="text-2xl font-black">{value}</p>
@@ -669,7 +710,7 @@ function AdminReturnsTab({ returns, onUpdate }) {
                 <span className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full
                   ${ret.returnType === 'refund' ? 'bg-green-100 text-green-700' :
                     ret.returnType === 'replacement' ? 'bg-blue-100 text-blue-700' :
-                    'bg-purple-100 text-purple-700'}`}>
+                      'bg-purple-100 text-purple-700'}`}>
                   {ret.returnType === 'refund' ? '💰 Refund' : ret.returnType === 'replacement' ? '🔄 Replacement' : '🔃 Exchange'}
                 </span>
               )}
@@ -771,55 +812,55 @@ function AdminReturnsTab({ returns, onUpdate }) {
 
           {/* ── Replacement / Exchange workflow buttons (after approval) ── */}
           {(ret.returnType === 'replacement' || ret.returnType === 'exchange') &&
-           ret.status !== 'requested' && ret.status !== 'rejected' && ret.status !== 'replacement_sent' && (
-            <div className="px-4 pb-4 border-t border-gray-50 pt-3">
-              <p className="text-xs font-bold text-gray-600 mb-2">
-                {ret.returnType === 'replacement' ? '🔄 Replacement Progress' : '🔃 Exchange Progress'} — Update Status:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {ret.status === 'approved' && (
-                  <button onClick={() => handleUpdateStatus(ret._id, 'pickup_scheduled')}
-                    disabled={!!actionLoading}
-                    className="text-xs bg-purple-600 text-white px-3 py-2 rounded-xl hover:bg-purple-700 disabled:opacity-60 transition font-semibold">
-                    {actionLoading === ret._id + '_pickup_scheduled' ? 'Updating...' : '📦 Schedule Pickup'}
-                  </button>
-                )}
-                {ret.status === 'pickup_scheduled' && (
-                  <button onClick={() => handleUpdateStatus(ret._id, 'item_received')}
-                    disabled={!!actionLoading}
-                    className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition font-semibold">
-                    {actionLoading === ret._id + '_item_received' ? 'Updating...' : '✅ Mark Item Received'}
-                  </button>
-                )}
-                {ret.status === 'item_received' && (
-                  <button onClick={() => handleUpdateStatus(ret._id, 'replacement_sent')}
-                    disabled={!!actionLoading}
-                    className="text-xs bg-green-600 text-white px-3 py-2 rounded-xl hover:bg-green-700 disabled:opacity-60 transition font-semibold">
-                    {actionLoading === ret._id + '_replacement_sent' ? 'Updating...' : '🚀 Mark Replacement Dispatched'}
-                  </button>
-                )}
-              </div>
-              {/* Mini status timeline */}
-              <div className="flex items-center gap-1 mt-3">
-                {['approved','pickup_scheduled','item_received','replacement_sent'].map((s, i, arr) => {
-                  const currentIdx = arr.indexOf(ret.status);
-                  const done = i <= currentIdx;
-                  const labels = { approved: 'Approved', pickup_scheduled: 'Pickup', item_received: 'Received', replacement_sent: 'Dispatched' };
-                  return (
-                    <div key={s} className="flex items-center flex-1 last:flex-none">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${done ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                          {i < currentIdx ? '✓' : i + 1}
+            ret.status !== 'requested' && ret.status !== 'rejected' && ret.status !== 'replacement_sent' && (
+              <div className="px-4 pb-4 border-t border-gray-50 pt-3">
+                <p className="text-xs font-bold text-gray-600 mb-2">
+                  {ret.returnType === 'replacement' ? '🔄 Replacement Progress' : '🔃 Exchange Progress'} — Update Status:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {ret.status === 'approved' && (
+                    <button onClick={() => handleUpdateStatus(ret._id, 'pickup_scheduled')}
+                      disabled={!!actionLoading}
+                      className="text-xs bg-purple-600 text-white px-3 py-2 rounded-xl hover:bg-purple-700 disabled:opacity-60 transition font-semibold">
+                      {actionLoading === ret._id + '_pickup_scheduled' ? 'Updating...' : '📦 Schedule Pickup'}
+                    </button>
+                  )}
+                  {ret.status === 'pickup_scheduled' && (
+                    <button onClick={() => handleUpdateStatus(ret._id, 'item_received')}
+                      disabled={!!actionLoading}
+                      className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition font-semibold">
+                      {actionLoading === ret._id + '_item_received' ? 'Updating...' : '✅ Mark Item Received'}
+                    </button>
+                  )}
+                  {ret.status === 'item_received' && (
+                    <button onClick={() => handleUpdateStatus(ret._id, 'replacement_sent')}
+                      disabled={!!actionLoading}
+                      className="text-xs bg-green-600 text-white px-3 py-2 rounded-xl hover:bg-green-700 disabled:opacity-60 transition font-semibold">
+                      {actionLoading === ret._id + '_replacement_sent' ? 'Updating...' : '🚀 Mark Replacement Dispatched'}
+                    </button>
+                  )}
+                </div>
+                {/* Mini status timeline */}
+                <div className="flex items-center gap-1 mt-3">
+                  {['approved', 'pickup_scheduled', 'item_received', 'replacement_sent'].map((s, i, arr) => {
+                    const currentIdx = arr.indexOf(ret.status);
+                    const done = i <= currentIdx;
+                    const labels = { approved: 'Approved', pickup_scheduled: 'Pickup', item_received: 'Received', replacement_sent: 'Dispatched' };
+                    return (
+                      <div key={s} className="flex items-center flex-1 last:flex-none">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${done ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                            {i < currentIdx ? '✓' : i + 1}
+                          </div>
+                          <span className={`text-[9px] mt-0.5 font-medium ${done ? 'text-indigo-600' : 'text-gray-400'}`}>{labels[s]}</span>
                         </div>
-                        <span className={`text-[9px] mt-0.5 font-medium ${done ? 'text-indigo-600' : 'text-gray-400'}`}>{labels[s]}</span>
+                        {i < arr.length - 1 && <div className={`flex-1 h-0.5 mx-0.5 mb-3 ${i < currentIdx ? 'bg-indigo-400' : 'bg-gray-100'}`} />}
                       </div>
-                      {i < arr.length - 1 && <div className={`flex-1 h-0.5 mx-0.5 mb-3 ${i < currentIdx ? 'bg-indigo-400' : 'bg-gray-100'}`} />}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Refunded status */}
           {ret.status === 'refunded' && (
