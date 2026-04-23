@@ -8,7 +8,7 @@ import {
 import { fetchFeatured, fetchCategories } from '../store/slices/productsSlice';
 import ProductCard from '../components/common/ProductCard';
 import { FullPageSpinner } from '../components/common';
-
+import FeaturedProducts from '../components/common/FeaturedProducts';
 const CATEGORIES = [
   { name: 'Electronics',     emoji: '📱', color: 'from-blue-500 to-indigo-600',   bg: 'bg-blue-50',   text: 'text-blue-700'   },
   { name: 'Fashion',         emoji: '👗', color: 'from-pink-500 to-rose-500',     bg: 'bg-pink-50',   text: 'text-pink-700'   },
@@ -207,7 +207,7 @@ export default function Home() {
       </section>
 
       {/* ══ FEATURED PRODUCTS ═════════════════════════════════ */}
-      <section className="bg-gray-50 py-16">
+      {/* <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-end justify-between mb-8">
             <div>
@@ -241,7 +241,9 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
+
+      <FeaturedProducts products={featured} />
 
       {/* ══ WHY SHOPWAVE — 3 COLUMN ═══════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">

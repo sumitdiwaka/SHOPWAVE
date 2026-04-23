@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   getDashboardStats, getAllUsers, toggleUserStatus,
-  getPendingVendors, approveVendor, getAllOrders, toggleFeaturedProduct,
+  getPendingVendors, approveVendor, getAllOrders, toggleFeaturedProduct,toggleFeatured 
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -16,5 +16,6 @@ router.get('/vendors/pending', getPendingVendors);
 router.put('/vendors/:id/approve', approveVendor);
 router.get('/orders', getAllOrders);
 router.put('/products/:id/feature', toggleFeaturedProduct);
+router.put('/products/:id/feature', authorize('admin'), toggleFeatured);
 
 export default router;

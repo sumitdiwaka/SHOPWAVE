@@ -151,3 +151,20 @@ export const toggleFeaturedProduct = asyncHandler(async (req, res) => {
   await product.save();
   res.json({ success: true, message: `Product ${product.isFeatured ? 'featured' : 'unfeatured'}` });
 });
+
+export const toggleFeatured = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) throw new AppError('Product not found', 404);
+ 
+  const updated = await Product.findByIdAndUpdate(
+    req.params.id,
+    { isFeatured: !product.isFeatured },
+    { new: true }
+  );
+ 
+  res.json({
+    success: true,
+    product: updated,
+    message: updated.isFeatured ? 'Product marked as featured' : 'Product removed from featured',
+  });
+});

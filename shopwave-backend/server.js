@@ -25,6 +25,13 @@ connectDB();
 const app    = express();
 const server = http.createServer(app);
 
+
+const allowedOrigins = [
+  'https://shopwave-chi.vercel.app',   // production
+  'http://localhost:5173',              // local dev
+  'http://localhost:3000',              // optional: CRA dev
+];
+
 const io = new Server(server, {
   cors: { origin: process.env.CLIENT_URL || 'http://localhost:5173', methods: ['GET', 'POST'] },
 });
@@ -36,6 +43,7 @@ io.on('connection', (socket) => {
 
 app.use((req, _res, next) => { req.io = io; next(); });
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
