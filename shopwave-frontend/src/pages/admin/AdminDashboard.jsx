@@ -52,7 +52,7 @@ export default function AdminDashboard() {
     else if (tab === 'users') fetch = adminAPI.getUsers().then((r) => setUsers(r.data.users));
     else if (tab === 'vendors') fetch = adminAPI.getPendingVendors().then((r) => setVendors(r.data.vendors));
     else if (tab === 'orders') fetch = adminAPI.getAllOrders().then((r) => setOrders(r.data.orders));
-    else if (tab === 'products') fetch = api.get('/products?limit=50').then((r) => setProducts(r.data.products || []));
+    else if (tab === 'products') fetch = api.get('/products?limit=50').then((r) => setProducts((r.data.products || []).filter(Boolean)));
     else if (tab === 'returns') fetch = api.get('/returns').then((r) => setReturns(r.data.returns || []));
     else fetch = Promise.resolve();
 
@@ -419,7 +419,7 @@ export default function AdminDashboard() {
                       Toggle products to show them in the Featured section on the homepage.
                     </p>
                     <div className="space-y-3">
-                      {products.map((product) => (
+                      {products.filter(Boolean).map((product) => (
                         <div key={product._id}
                           className="flex items-center gap-4 p-3 border border-gray-100 rounded-2xl hover:bg-gray-50 transition">
                           <img
@@ -436,7 +436,7 @@ export default function AdminDashboard() {
                           <FeaturedToggle
                             product={product}
                             onUpdate={(updated) => setProducts(prev =>
-                              prev.map(p => p._id === updated._id ? updated : p)
+                              prev.filter(Boolean).map(p => p._id === updated._id ? updated : p)
                             )}
                           />
                         </div>
