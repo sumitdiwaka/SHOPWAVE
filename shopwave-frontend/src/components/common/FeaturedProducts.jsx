@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { ChevronLeft, ChevronRight, Star, ShoppingCart, Zap, ArrowRight } from 'lucide-react';
-// import { addToCart } from '../store/slices/cartSlice';
+import { addToCart } from '../../store/slices/cartSlice';
 // 
 // ─────────────────────────────────────────
 //  VIEW 1 — CLASSIC GRID (4 columns)
