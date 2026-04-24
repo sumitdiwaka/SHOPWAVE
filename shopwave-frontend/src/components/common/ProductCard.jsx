@@ -8,6 +8,8 @@ import { toggleWishlistItem, selectIsInWishlist } from '../../store/slices/authS
 import toast from 'react-hot-toast';
 
 export default function ProductCard({ product, featured = false }) {
+  // Guard: if product is null/undefined, render nothing
+  if (!product || !product._id) return null;
   const dispatch   = useDispatch();
   const { user }   = useSelector((s) => s.auth);
   const inWishlist = useSelector(selectIsInWishlist(product._id));

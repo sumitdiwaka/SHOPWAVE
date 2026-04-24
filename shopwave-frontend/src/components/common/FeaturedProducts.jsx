@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { ChevronLeft, ChevronRight, Star, ShoppingCart, Zap, ArrowRight } from 'lucide-react';
-// import { addToCart } from '../store/slices/cartSlice';
+import { addToCart } from '../store/slices/cartSlice';
 
 // ─────────────────────────────────────────
 //  VIEW 1 — CLASSIC GRID (4 columns)
@@ -13,7 +13,7 @@ function GridView({ products }) {
   const dispatch = useDispatch();
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-      {products.map(p => {
+      {(products || []).filter(p => p && p._id).map(p => {
         const price = p.discountPrice > 0 ? p.discountPrice : p.price;
         const disc  = p.discountPrice > 0 ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0;
         return (
@@ -56,7 +56,7 @@ function CarouselView({ products }) {
         <ChevronLeft className="w-5 h-5 text-gray-700" />
       </button>
       <div ref={ref} className="flex gap-5 overflow-x-auto scroll-smooth pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        {products.map(p => {
+        {(products || []).filter(p => p && p._id).map(p => {
           const price = p.discountPrice > 0 ? p.discountPrice : p.price;
           const disc  = p.discountPrice > 0 ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0;
           return (
@@ -94,7 +94,8 @@ function CarouselView({ products }) {
 // ─────────────────────────────────────────
 function BentoView({ products }) {
   const dispatch = useDispatch();
-  const [hero, ...rest] = products.slice(0, 5);
+  const safe = (products || []).filter(p => p && p._id);
+  const [hero, ...rest] = safe.slice(0, 5);
   const heroPrice = hero?.discountPrice > 0 ? hero.discountPrice : hero?.price;
   const heroDisc  = hero?.discountPrice > 0 ? Math.round(((hero.price - hero.discountPrice) / hero.price) * 100) : 0;
 
@@ -102,7 +103,7 @@ function BentoView({ products }) {
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4" style={{ gridTemplateRows: 'auto' }}>
       {/* Hero card — spans 2 rows and 2 cols on desktop */}
       {hero && (
-        <Link to={`/products/${hero._id}`}
+        <Link to={`/products/${hero?._id}`}
           className="group relative md:col-span-2 md:row-span-2 rounded-3xl overflow-hidden bg-gray-900 min-h-[360px] flex flex-col justify-end hover:shadow-2xl transition-all duration-300">
           <img src={hero.images?.[0]?.url} alt={hero.name} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -121,7 +122,7 @@ function BentoView({ products }) {
         </Link>
       )}
       {/* Small cards */}
-      {rest.map(p => {
+      {rest.filter(p => p && p._id).map(p => {
         const price = p.discountPrice > 0 ? p.discountPrice : p.price;
         return (
           <Link key={p._id} to={`/products/${p._id}`}
@@ -150,11 +151,12 @@ function BentoView({ products }) {
 function SpotlightView({ products }) {
   const dispatch = useDispatch();
   const [idx, setIdx] = useState(0);
-  const p     = products[idx];
+  const safe  = (products || []).filter(p => p && p._id);
+  const p     = safe[idx] || safe[0];
   const price = p?.discountPrice > 0 ? p.discountPrice : p?.price;
   const disc  = p?.discountPrice > 0 ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0;
-  const prev  = () => setIdx(i => (i - 1 + products.length) % products.length);
-  const next  = () => setIdx(i => (i + 1) % products.length);
+  const prev  = () => setIdx(i => (i - 1 + safe.length) % safe.length);
+  const next  = () => setIdx(i => (i + 1) % safe.length);
 
   // auto-advance every 4s
   useEffect(() => {
@@ -229,7 +231,7 @@ function SpotlightView({ products }) {
 
       {/* Dots */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
-        {products.map((_, i) => (
+        {safe.map((_, i) => (
           <button key={i} onClick={() => setIdx(i)}
             className={`rounded-full transition-all duration-300 ${i === idx ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40'}`} />
         ))}
@@ -251,7 +253,8 @@ const VIEWS = [
 
 export default function FeaturedProducts({ products = [] }) {
   const [view, setView] = useState('bento');
-  if (!products.length) return null;
+  const safeProducts = (products || []).filter(p => p && p._id);
+  if (!safeProducts.length) return null;
 
   return (
     <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">
@@ -276,10 +279,10 @@ export default function FeaturedProducts({ products = [] }) {
       </div>
 
       {/* Active view */}
-      {view === 'grid'      && <GridView     products={products} />}
-      {view === 'carousel'  && <CarouselView products={products} />}
-      {view === 'bento'     && <BentoView    products={products} />}
-      {view === 'spotlight' && <SpotlightView products={products} />}
+      {view === 'grid'      && <GridView     products={safeProducts} />}
+      {view === 'carousel'  && <CarouselView products={safeProducts} />}
+      {view === 'bento'     && <BentoView    products={safeProducts} />}
+      {view === 'spotlight' && <SpotlightView products={safeProducts} />}
 
       {/* View all link */}
       <div className="flex justify-center mt-10">
